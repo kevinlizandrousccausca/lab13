@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             Lab13Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    AnimateColorExample(modifier = Modifier.padding(innerPadding))
+                    AnimateSizeAndPositionExample(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
@@ -34,43 +34,48 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AnimateColorExample(modifier: Modifier = Modifier) {
-    // 1. Define un estado para alternar el color.
-    var isBlue by remember { mutableStateOf(true) }
+fun AnimateSizeAndPositionExample(modifier: Modifier = Modifier) {
+    // 1. Definir estados para el tamaño y la posición.
+    var size by remember { mutableStateOf(100.dp) }
+    var offsetX by remember { mutableStateOf(0.dp) }
+    var offsetY by remember { mutableStateOf(0.dp) }
 
-    // 2. Anima el cambio de color con animateColorAsState.
-    // Puedes experimentar con tween o spring como especificaciones de animación.
-    val color by animateColorAsState(
-        targetValue = if (isBlue) Color.Blue else Color.Green,
-        animationSpec = tween(durationMillis = 1000) // Cambia esto por spring() para experimentar
-    )
+    // 2. Animaciones de tamaño y desplazamiento.
+    val animatedSize by animateDpAsState(targetValue = size, animationSpec = tween(durationMillis = 500))
+    val animatedOffsetX by animateDpAsState(targetValue = offsetX, animationSpec = tween(durationMillis = 500))
+    val animatedOffsetY by animateDpAsState(targetValue = offsetY, animationSpec = tween(durationMillis = 500))
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = modifier.fillMaxSize()
     ) {
-        // 3. Botón para alternar el color del cuadro.
-        Button(onClick = { isBlue = !isBlue }) {
-            Text("Cambiar Color")
+        // 3. Botón que alterna el tamaño y la posición del cuadro.
+        Button(onClick = {
+            size = if (size == 100.dp) 150.dp else 100.dp
+            offsetX = if (offsetX == 0.dp) 50.dp else 0.dp
+            offsetY = if (offsetY == 0.dp) 50.dp else 0.dp
+        }) {
+            Text("Mover y Cambiar Tamaño")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 4. Cuadro con fondo animado que cambia de color.
+        // 4. Cuadro animado con tamaño y posición cambiantes.
         Box(
             modifier = Modifier
-                .size(100.dp)
-                .background(color)
+                .size(animatedSize)
+                .offset(x = animatedOffsetX, y = animatedOffsetY)
+                .background(Color.Red)
         )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun AnimateColorExamplePreview() {
+fun AnimateSizeAndPositionExamplePreview() {
     Lab13Theme {
-        AnimateColorExample()
+        AnimateSizeAndPositionExample()
     }
 }
 
