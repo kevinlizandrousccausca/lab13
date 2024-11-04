@@ -4,9 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.with
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
@@ -14,9 +17,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.lab13.ui.theme.Lab13Theme
 
 class MainActivity : ComponentActivity() {
@@ -26,57 +29,55 @@ class MainActivity : ComponentActivity() {
         setContent {
             Lab13Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    AnimateSizeAndPositionExample(modifier = Modifier.padding(innerPadding))
+                    AnimatedContentExample(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun AnimateSizeAndPositionExample(modifier: Modifier = Modifier) {
-    // 1. Definir estados para el tamaño y la posición.
-    var size by remember { mutableStateOf(100.dp) }
-    var offsetX by remember { mutableStateOf(0.dp) }
-    var offsetY by remember { mutableStateOf(0.dp) }
-
-    // 2. Animaciones de tamaño y desplazamiento.
-    val animatedSize by animateDpAsState(targetValue = size, animationSpec = tween(durationMillis = 500))
-    val animatedOffsetX by animateDpAsState(targetValue = offsetX, animationSpec = tween(durationMillis = 500))
-    val animatedOffsetY by animateDpAsState(targetValue = offsetY, animationSpec = tween(durationMillis = 500))
+fun AnimatedContentExample(modifier: Modifier = Modifier) {
+    // 1. Define un estado para los diferentes estados de la pantalla.
+    var currentState by remember { mutableStateOf("Cargando") }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = modifier.fillMaxSize()
     ) {
-        // 3. Botón que alterna el tamaño y la posición del cuadro.
-        Button(onClick = {
-            size = if (size == 100.dp) 150.dp else 100.dp
-            offsetX = if (offsetX == 0.dp) 50.dp else 0.dp
-            offsetY = if (offsetY == 0.dp) 50.dp else 0.dp
-        }) {
-            Text("Mover y Cambiar Tamaño")
+        // 2. Botones para cambiar el estado.
+        Row {
+            Button(onClick = { currentState = "Cargando" }) { Text("Cargando") }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = { currentState = "Contenido" }) { Text("Contenido") }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = { currentState = "Error" }) { Text("Error") }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 4. Cuadro animado con tamaño y posición cambiantes.
-        Box(
-            modifier = Modifier
-                .size(animatedSize)
-                .offset(x = animatedOffsetX, y = animatedOffsetY)
-                .background(Color.Red)
-        )
+        // 3. Uso de AnimatedContent para las transiciones entre estados.
+        AnimatedContent(
+            targetState = currentState,
+            transitionSpec = {
+                fadeIn(animationSpec = tween(500)) with fadeOut(animationSpec = tween(500))
+            }
+        ) { state ->
+            when (state) {
+                "Cargando" -> Text("Cargando...", fontSize = 24.sp)
+                "Contenido" -> Text("Contenido listo", fontSize = 24.sp)
+                "Error" -> Text("Error al cargar", fontSize = 24.sp)
+            }
+        }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun AnimateSizeAndPositionExamplePreview() {
+fun AnimatedContentExamplePreview() {
     Lab13Theme {
-        AnimateSizeAndPositionExample()
+        AnimatedContentExample()
     }
 }
-
-
