@@ -4,12 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.with
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
@@ -17,9 +15,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.lab13.ui.theme.Lab13Theme
 
 class MainActivity : ComponentActivity() {
@@ -29,55 +27,75 @@ class MainActivity : ComponentActivity() {
         setContent {
             Lab13Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    AnimatedContentExample(modifier = Modifier.padding(innerPadding))
+                    CombinedAnimationsExample(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun AnimatedContentExample(modifier: Modifier = Modifier) {
-    // 1. Define un estado para los diferentes estados de la pantalla.
-    var currentState by remember { mutableStateOf("Cargando") }
+fun CombinedAnimationsExample(modifier: Modifier = Modifier) {
+    // 1. Estados para cambiar tamaño, color, visibilidad y modo claro/oscuro.
+    var size by remember { mutableStateOf(100.dp) }
+    var color by remember { mutableStateOf(Color.Blue) }
+    var isVisible by remember { mutableStateOf(true) }
+    var isDarkMode by remember { mutableStateOf(false) }
+
+    // 2. Animaciones para tamaño y color del cuadro.
+    val animatedSize by animateDpAsState(targetValue = size, animationSpec = tween(durationMillis = 500))
+    val animatedColor by animateColorAsState(targetValue = color, animationSpec = tween(durationMillis = 500))
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = modifier.fillMaxSize()
+        modifier = modifier
+            .fillMaxSize()
+            .background(if (isDarkMode) Color.Black else Color.White)
     ) {
-        // 2. Botones para cambiar el estado.
-        Row {
-            Button(onClick = { currentState = "Cargando" }) { Text("Cargando") }
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { currentState = "Contenido" }) { Text("Contenido") }
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { currentState = "Error" }) { Text("Error") }
+        // 3. Botón para cambiar el tamaño y el color del cuadro.
+        Button(onClick = {
+            size = if (size == 100.dp) 150.dp else 100.dp
+            color = if (color == Color.Blue) Color.Green else Color.Blue
+        }) {
+            Text("Cambiar Tamaño y Color")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 3. Uso de AnimatedContent para las transiciones entre estados.
-        AnimatedContent(
-            targetState = currentState,
-            transitionSpec = {
-                fadeIn(animationSpec = tween(500)) with fadeOut(animationSpec = tween(500))
+        // 4. Cuadro que cambia de tamaño y color animado.
+        Box(
+            modifier = Modifier
+                .size(animatedSize)
+                .background(animatedColor)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 5. Botón para alternar la visibilidad.
+        AnimatedVisibility(
+            visible = isVisible,
+            enter = fadeIn(animationSpec = tween(durationMillis = 500)),
+            exit = fadeOut(animationSpec = tween(durationMillis = 500))
+        ) {
+            Button(onClick = { isVisible = !isVisible }) {
+                Text("Alternar Visibilidad")
             }
-        ) { state ->
-            when (state) {
-                "Cargando" -> Text("Cargando...", fontSize = 24.sp)
-                "Contenido" -> Text("Contenido listo", fontSize = 24.sp)
-                "Error" -> Text("Error al cargar", fontSize = 24.sp)
-            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 6. Botón para alternar entre modo claro y oscuro.
+        Button(onClick = { isDarkMode = !isDarkMode }) {
+            Text(if (isDarkMode) "Modo Claro" else "Modo Oscuro")
         }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun AnimatedContentExamplePreview() {
+fun CombinedAnimationsExamplePreview() {
     Lab13Theme {
-        AnimatedContentExample()
+        CombinedAnimationsExample()
     }
 }
